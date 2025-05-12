@@ -45,9 +45,11 @@ public class UserService {
             throw new IllegalArgumentException("잘못된 비밀번호");
         }
 
-        String token = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getUserRole());
+        String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getUserRole());
 
-        return token;
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        return accessToken;
     }
 
     public User testLogin() {
