@@ -3,6 +3,8 @@ package com.example.security_lecture.domain.user.controller;
 import com.example.security_lecture.domain.user.dto.*;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,15 @@ public class UserController {
         return new ResponseEntity<>(tokenDto.getAccessToken(), HttpStatus.OK);
     }
 
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissueToken(HttpServletRequest request) {
+
+        String accessToken = userService.reissueToken(request);
+
+        return new ResponseEntity<>(accessToken, HttpStatus.OK);
+    }
+
+
     @GetMapping("/testLogin")
     public ResponseEntity<TestLoginDto> testLogin() {
 
@@ -54,5 +65,4 @@ public class UserController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 }

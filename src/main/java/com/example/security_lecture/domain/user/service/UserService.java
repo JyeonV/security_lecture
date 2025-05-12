@@ -6,6 +6,8 @@ import com.example.security_lecture.domain.user.dto.TokenDto;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.entity.UserRole;
 import com.example.security_lecture.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,6 +57,27 @@ public class UserService {
         return tokenDto;
     }
 
+    public String reissueToken(HttpServletRequest request) {
+
+        String refreshToken = extractTokenFromCookie(request, "refreshToken");
+
+        Long userId = jwtUtil.getUserIdFromToken(refreshToken);
+
+        String savedRefreshToken = tokenService.getRefreshToken(userId);
+
+        if(!refreshToken.equals(savedRefreshToken)) {
+            throw new IllegalArgumentException("리프레시 토큰 불일치");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정"));
+
+        String newAccessToken = jwtUtil.createAccessToken(userId, user.getEmail(), user.getUserRole());
+
+        return newAccessToken;
+    }
+
+
     public User testLogin() {
 
         Long UserId = getUserId();
@@ -68,4 +91,17 @@ public class UserService {
     private Long getUserId() {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+    private String extractTokenFromCookie(HttpServletRequest request, String name) {
+        if(request.getCookies() == null) return null;
+
+        for(Cookie cookie : request.getCookies()) {
+            if(cookie.getName().equals(name)) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+
 }
