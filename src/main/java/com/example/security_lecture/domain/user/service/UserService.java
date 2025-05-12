@@ -2,13 +2,10 @@ package com.example.security_lecture.domain.user.service;
 
 import com.example.security_lecture.common.JwtUtil;
 import com.example.security_lecture.domain.user.dto.SignUpResponseDto;
+import com.example.security_lecture.domain.user.dto.TokenDto;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.entity.UserRole;
 import com.example.security_lecture.domain.user.repository.UserRepository;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +35,7 @@ public class UserService {
 
     }
 
-    public String login(String email, String password) {
+    public TokenDto login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("이메일이 없음"));
@@ -53,7 +50,9 @@ public class UserService {
 
         tokenService.saveRefreshToken(user.getId(), refreshToken);
 
-        return accessToken;
+        TokenDto tokenDto = new TokenDto(accessToken, refreshToken);
+
+        return tokenDto;
     }
 
     public User testLogin() {

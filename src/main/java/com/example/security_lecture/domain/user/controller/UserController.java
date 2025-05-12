@@ -1,9 +1,6 @@
 package com.example.security_lecture.domain.user.controller;
 
-import com.example.security_lecture.domain.user.dto.LoginRequestDto;
-import com.example.security_lecture.domain.user.dto.SignUpRequestDto;
-import com.example.security_lecture.domain.user.dto.SignUpResponseDto;
-import com.example.security_lecture.domain.user.dto.TestLoginDto;
+import com.example.security_lecture.domain.user.dto.*;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,9 +29,9 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto, HttpServletResponse response) {
 
-        String token = userService.login(requestDto.getEmail(), requestDto.getPassword());
+        TokenDto tokenDto = userService.login(requestDto.getEmail(), requestDto.getPassword());
 
-        ResponseCookie cookie = ResponseCookie.from("accessToken", token) // 쿠키의 이름과 값을 설정하는 부분
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken()) // 쿠키의 이름과 값을 설정하는 부분
                 .httpOnly(true) // JS 에서의 접근을 막는다
                 .secure(true)         // HTTPS만 사용할 경우 true
                 .path("/")            // 전체 경로에서 사용 가능
@@ -43,9 +40,9 @@ public class UserController {
                 .build();
 
         // HTTP 응답 헤더에 Set-Cookie로 추가
-        response.addHeader("Set-Cookie", cookie.toString());
+        response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        return ResponseEntity.ok("로그인 성공");
+        return new ResponseEntity<>(tokenDto.getAccessToken(), HttpStatus.OK);
     }
 
     @GetMapping("/testLogin")

@@ -41,15 +41,24 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = null;
-        if(request.getCookies() != null) { // request.getCookies는 cookie[]로 반환
-            for (Cookie cookie : request.getCookies()) {
-                if ("accessToken".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
+        String bearerJwt = request.getHeader("Authorization");
+
+        if (bearerJwt == null || !bearerJwt.startsWith("Bearer ")) { // 토큰이 비어있는지 확인
+            throw new IllegalArgumentException("토큰 없음");
         }
+
+        String token = bearerJwt.substring(7);
+
+//        String token = null;
+//        if(request.getCookies() != null) { // request.getCookies는 cookie[]로 반환
+//            for (Cookie cookie : request.getCookies()) {
+//                if ("accessToken".equals(cookie.getName())) {
+//                    token = cookie.getValue();
+//                    break;
+//                }
+//            }
+//        }
+        // -> 토큰을 쿠키에 담아서 넣을떄 쿠키에서 뽑는법
 
         if(token == null || !jwtUtil.validateToken(token)) {
             throw new IllegalArgumentException("유효하지 않은 토큰");
