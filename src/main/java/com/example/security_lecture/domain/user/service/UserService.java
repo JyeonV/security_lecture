@@ -24,6 +24,8 @@ public class UserService {
 
     private final JwtUtil jwtUtil;
 
+    private final TokenService tokenService;
+
     public SignUpResponseDto signUp(String email, String password, UserRole userRole) {
 
         String encodePassword = passwordEncoder.encode(password);
@@ -48,6 +50,8 @@ public class UserService {
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getUserRole());
 
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        tokenService.saveRefreshToken(user.getId(), refreshToken);
 
         return accessToken;
     }
