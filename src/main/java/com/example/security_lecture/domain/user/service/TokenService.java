@@ -1,5 +1,6 @@
 package com.example.security_lecture.domain.user.service;
 
+import com.example.security_lecture.common.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class TokenService {
 
+    private final JwtUtil jwtUtil;
+
     private final StringRedisTemplate redisTemplate;
 
     /* key = RT:{userId}, value = refreshToken, TTL = 7일
@@ -22,9 +25,7 @@ public class TokenService {
        redisTemplate.opsForValue().set(key,value) -> SET key value 랑 같다
      */
     public void saveRefreshToken(Long userId, String refreshToken) {
-
         String key = "RT:" + userId;
-
         redisTemplate.opsForValue().set(key, refreshToken, 7, TimeUnit.DAYS);
     }
 
@@ -34,6 +35,17 @@ public class TokenService {
 
     public void deleteRefreshToken(Long userId) {
         redisTemplate.delete("RT:" + userId);
+    }
+
+    public void blacklistAccessToken(String accessToken) {
+        long remainingTime = jwtUtil.getExpiration(accessToken);
+        String key = "Blacklist:" + accessToken;
+        redisTemplate.opsForValue().set(key, "logout", remainingTime, TimeUnit.MILLISECONDS);
+    }
+
+    public boolean isBlacklisted(String accessToken) {
+        String key = "Blacklist:" + accessToken;
+        return redisTemplate.hasKey(key);
     }
 
 }

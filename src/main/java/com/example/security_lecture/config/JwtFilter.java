@@ -2,10 +2,10 @@ package com.example.security_lecture.config;
 
 import com.example.security_lecture.common.JwtUtil;
 import com.example.security_lecture.domain.user.entity.UserRole;
+import com.example.security_lecture.domain.user.service.TokenService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,8 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+
+    private final TokenService tokenService;
 
     private static final String[] WHITE_LIST = {
             "/users/login",
@@ -62,6 +64,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if(token == null || !jwtUtil.validateToken(token)) {
             throw new IllegalArgumentException("유효하지 않은 토큰");
+        }
+
+        if(tokenService.isBlacklisted(token)) {
+            throw new IllegalArgumentException("블랙리스트 토큰");
         }
 
         Claims claims = jwtUtil.getClaims(token);

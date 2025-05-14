@@ -1,6 +1,7 @@
 package com.example.security_lecture.config;
 
 import com.example.security_lecture.common.JwtUtil;
+import com.example.security_lecture.domain.user.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +13,11 @@ public class FilterConfig {
 
     private final JwtUtil jwtUtil;
 
+    private final TokenService tokenService;
+
     @Bean
     public JwtFilter jwtFilter() {
-        return new JwtFilter(jwtUtil);
+        return new JwtFilter(jwtUtil, tokenService);
     }
 
 

@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -77,12 +78,28 @@ public class JwtUtil {
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
+        Claims claims = getClaims(token);
         return Long.parseLong(claims.getSubject());
+    }
+
+    public String resolveAccessToken(HttpServletRequest request) { // 토큰 추출 from Header 메서드
+        String bearerJwt = request.getHeader("Authorization");
+        if (bearerJwt == null || !bearerJwt.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("토큰 없음");
+        }
+        String token = bearerJwt.substring(7);
+        return token;
+    }
+
+    public Long getExpiration(String token) { // 남은 유효시간 확인 메서드
+        Claims claims = getClaims(token);
+        Date expiration = claims.getExpiration();
+        return expiration.getTime() - System.currentTimeMillis(); // 남은시간을 ms 단위로 계산해서 반환
+    }
+
+    public boolean isExpired(String token) { // 만료 여부 확인 메서드
+        Claims claims = getClaims(token);
+        Date expiration = claims.getExpiration();
+        return expiration.before(new Date());
     }
 }

@@ -55,6 +55,10 @@ public class UserController {
         return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest request) {
+        userService.logout(request);
+    }
 
     @GetMapping("/testLogin")
     public ResponseEntity<TestLoginDto> testLogin() {
