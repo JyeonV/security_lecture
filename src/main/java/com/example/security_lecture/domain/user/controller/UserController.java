@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -56,14 +57,14 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletRequest request) {
-        userService.logout(request);
+    public void logout(HttpServletRequest request, @AuthenticationPrincipal long userId) {
+        userService.logout(request, userId);
     }
 
     @GetMapping("/testLogin")
-    public ResponseEntity<TestLoginDto> testLogin() {
+    public ResponseEntity<TestLoginDto> testLogin(@AuthenticationPrincipal long userId) {
 
-        User user = userService.testLogin();
+        User user = userService.testLogin(userId);
 
         TestLoginDto response = new TestLoginDto(user.getEmail(), user.getUserRole());
 

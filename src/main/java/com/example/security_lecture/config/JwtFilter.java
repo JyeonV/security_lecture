@@ -43,13 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String bearerJwt = request.getHeader("Authorization");
-
-        if (bearerJwt == null || !bearerJwt.startsWith("Bearer ")) { // 토큰이 비어있는지 확인
-            throw new IllegalArgumentException("토큰 없음");
-        }
-
-        String token = bearerJwt.substring(7);
+        String token = jwtUtil.resolveAccessToken(request); // 토큰 추출 메서드 from Header
 
 //        String token = null;
 //        if(request.getCookies() != null) { // request.getCookies는 cookie[]로 반환

@@ -9,6 +9,7 @@ import com.example.security_lecture.domain.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -80,22 +81,16 @@ public class UserService {
         return newAccessToken;
     }
 
-    public void logout(HttpServletRequest request) {
+    public void logout(HttpServletRequest request, long userId) {
         tokenService.blacklistAccessToken(jwtUtil.resolveAccessToken(request));
-        tokenService.deleteRefreshToken(getUserId());
+        tokenService.deleteRefreshToken(userId);
     }
 
-    public User testLogin() {
-        Long UserId = getUserId();
-
-        User user = userRepository.findById(UserId)
+    public User testLogin(long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 정보"));
 
         return user;
-    }
-
-    private Long getUserId() {
-        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private String extractTokenFromCookie(HttpServletRequest request, String name) {
@@ -109,4 +104,7 @@ public class UserService {
         return null;
     }
 
+//    private Long getUserId() {
+//        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//    } -> @AuthenticationPrincipal 으로 대체 가능
 }
