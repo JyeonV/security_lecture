@@ -1,5 +1,6 @@
 package com.example.security_lecture.domain.user.controller;
 
+import com.example.security_lecture.config.CustomUserDetails;
 import com.example.security_lecture.domain.user.dto.*;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.service.UserService;
@@ -57,14 +58,14 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletRequest request, @AuthenticationPrincipal long userId) {
-        userService.logout(request, userId);
+    public void logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.logout(request, userDetails.getId());
     }
 
     @GetMapping("/testLogin")
-    public ResponseEntity<TestLoginDto> testLogin(@AuthenticationPrincipal long userId) {
+    public ResponseEntity<TestLoginDto> testLogin(@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        User user = userService.testLogin(userId);
+        User user = userService.testLogin(userDetails.getId());
 
         TestLoginDto response = new TestLoginDto(user.getEmail(), user.getUserRole());
 

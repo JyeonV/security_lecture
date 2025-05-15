@@ -15,9 +15,11 @@ public class FilterConfig {
 
     private final TokenService tokenService;
 
+    private final CustomUserDetailsService customUserDetailsService;
+
     @Bean
     public JwtFilter jwtFilter() {
-        return new JwtFilter(jwtUtil, tokenService);
+        return new JwtFilter(jwtUtil, tokenService, customUserDetailsService);
     }
 
 
