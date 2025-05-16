@@ -1,5 +1,7 @@
 package com.example.security_lecture.config;
 
+import com.example.security_lecture.common.JwtUtil;
+import com.example.security_lecture.domain.user.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +18,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     // 우리가 만든 filter 를 security 체인에 넣기 위해 주입
-    private final JwtFilter jwtFilter;
+    private final JwtUtil jwtUtil;
+
+    private final TokenService tokenService;
+
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtFilter jwtFilter = new JwtFilter(jwtUtil, tokenService, customUserDetailsService);
+
         return http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

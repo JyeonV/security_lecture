@@ -48,47 +48,36 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = jwtUtil.resolveAccessToken(request); // 토큰 추출 메서드 from Header
 
-//        String token = null;
-//        if(request.getCookies() != null) { // request.getCookies는 cookie[]로 반환
-//            for (Cookie cookie : request.getCookies()) {
-//                if ("accessToken".equals(cookie.getName())) {
-//                    token = cookie.getValue();
-//                    break;
-//                }
-//            }
-//        }
-        // -> 토큰을 쿠키에 담아서 넣을떄 쿠키에서 뽑는법
+        if(isValidToken(token)) {
 
-        if(token == null || !jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("유효하지 않은 토큰");
+            Claims claims = jwtUtil.getClaims(token);
+            String email = claims.get("email", String.class);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+            // spring security 의 표준 인증 객체
+            // 1. Principle(주체, 보통 사용자 email 또는 User 객체)
+            // 2. credentials(자격정보, 보통 비밀번호이며 인증 후엔 null로 둔다)
+            // 3. authorities(권한 목록, 위에서 만든 ROLE_USER 같은 권한들)
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            // 생성한 authentication 을 security context holder 에 넣어주며 이후 요청 처리 과정(컨트롤러 등)에서 인증 정보에 접근 가능
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-
-        if(tokenService.isBlacklisted(token)) {
-            throw new IllegalArgumentException("블랙리스트 토큰");
-        }
-
-        Claims claims = jwtUtil.getClaims(token);
-        Long userId = Long.parseLong(claims.getSubject());
-        String email = claims.get("email", String.class);
-        UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-
-
-        // 권한 설정 -> GrantedAuthority 인터페이스로 관리
-        // security 는 내부적으로 권한을 식별할 때 ROLE_ prefix가 있는지 확인하기 때문에 붙여준다
-        // security 는 기본적으로 권한이 여러 개일 수 있다는 전제가 기반이므로 list 이며 실제로 밑에서 권한을 추가 가능
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name()));
-
-        // spring security 의 표준 인증 객체
-        // 1. Principle(주체, 보통 사용자 email 또는 User 객체)
-        // 2. credentials(자격정보, 보통 비밀번호이며 인증 후엔 null로 둔다)
-        // 3. authorities(권한 목록, 위에서 만든 ROLE_USER 같은 권한들)
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-
-        // 생성한 authentication 을 securitycontextholder 에 넣어주며 이후 요청 처리 과정(컨트롤러 등)에서 인증 정보에 접근 가능
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         chain.doFilter(request, response);
+    }
+
+    private boolean isValidToken(String token) {
+        if(token != null) {
+            throw new IllegalArgumentException("토큰 없음");
+        }
+        if(!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("유효하지 않은 토큰");
+        }
+//        if(tokenService.isBlacklisted(token)) {
+//              throw new IllegalArgumentException("블랙리스트 등록 토큰");
+//        }
+        return true;
     }
 
     private boolean isWhiteList(String requestURI) {

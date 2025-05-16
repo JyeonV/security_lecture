@@ -3,16 +3,16 @@ package com.example.security_lecture.domain.user.service;
 import com.example.security_lecture.common.JwtUtil;
 import com.example.security_lecture.domain.user.dto.SignUpResponseDto;
 import com.example.security_lecture.domain.user.dto.TokenDto;
+import com.example.security_lecture.domain.user.dto.UserUpdateRequestDto;
 import com.example.security_lecture.domain.user.entity.User;
 import com.example.security_lecture.domain.user.entity.UserRole;
 import com.example.security_lecture.domain.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class UserService {
 
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        tokenService.saveRefreshToken(user.getId(), refreshToken);
+//        tokenService.saveRefreshToken(user.getId(), refreshToken);
 
         TokenDto tokenDto = new TokenDto(accessToken, refreshToken);
 
@@ -102,6 +102,25 @@ public class UserService {
             }
         }
         return null;
+    }
+
+    @Transactional
+    public void update(Long userId, UserUpdateRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->  new IllegalArgumentException("유효하지 않은 사용자 정보"));
+
+        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호 불일치");
+        }
+
+        if(request.hasNewEmail()) {
+            user.changeEmail(request.getNewEmail());
+        }
+
+        if(request.hasNewPassword()) {
+            String password = passwordEncoder.encode(request.getNewPassword());
+            user.changePassword(password);
+        }
     }
 
 //    private Long getUserId() {

@@ -35,18 +35,23 @@ public class UserController {
 
         TokenDto tokenDto = userService.login(requestDto.getEmail(), requestDto.getPassword());
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken()) // 쿠키의 이름과 값을 설정하는 부분
-                .httpOnly(true) // JS 에서의 접근을 막는다
-                .secure(true)         // HTTPS만 사용할 경우 true
-                .path("/")            // 전체 경로에서 사용 가능
-                .maxAge(60 * 60)      // 1시간
-                .sameSite("Lax") // 브라우저가 이 쿠키를 어떤 상황에서 요청에 자동으로 포함시킬지, Lax = 같은 사이트 + 대부분의 get요청 허용
-                .build();
-
-        // HTTP 응답 헤더에 Set-Cookie로 추가
-        response.addHeader("Set-Cookie", refreshCookie.toString());
+//        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenDto.getRefreshToken()) // 쿠키의 이름과 값을 설정하는 부분
+//                .httpOnly(true) // JS 에서의 접근을 막는다
+//                .secure(true)         // HTTPS만 사용할 경우 true
+//                .path("/")            // 전체 경로에서 사용 가능
+//                .maxAge(60 * 60)      // 1시간
+//                .sameSite("Lax") // 브라우저가 이 쿠키를 어떤 상황에서 요청에 자동으로 포함시킬지, Lax = 같은 사이트 + 대부분의 get요청 허용
+//                .build();
+//
+//        // HTTP 응답 헤더에 Set-Cookie로 추가
+//        response.addHeader("Set-Cookie", refreshCookie.toString());
 
         return new ResponseEntity<>(tokenDto.getAccessToken(), HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.logout(request, userDetails.getId());
     }
 
     @PostMapping("/reissue")
@@ -57,9 +62,9 @@ public class UserController {
         return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
-    @PostMapping("/logout")
-    public void logout(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.logout(request, userDetails.getId());
+    @PatchMapping("/update")
+    public void update(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UserUpdateRequestDto request) {
+        userService.update(userDetails.getId(), request);
     }
 
     @GetMapping("/testLogin")

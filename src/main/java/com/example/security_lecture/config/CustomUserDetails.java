@@ -23,7 +23,9 @@ public class CustomUserDetails implements UserDetails {
         this.userRole = userRole;
     }
 
-
+    // 권한 설정 -> GrantedAuthority 인터페이스로 관리
+    // security 는 내부적으로 권한을 식별할 때 ROLE_ prefix가 있는지 확인하기 때문에 붙여준다
+    // security 는 기본적으로 권한이 여러 개일 수 있다는 전제가 기반이므로 list 이며 실제로 밑에서 권한을 추가 가능
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(() -> "ROLE_" + userRole.name()); }
 

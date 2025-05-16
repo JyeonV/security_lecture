@@ -27,4 +27,12 @@ public class User {
         this.password = password;
         this.userRole = userRole;
     }
+
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
+    }
+
+    public void changePassword(String newPassword) {
+        this.email = newPassword;
+    }
 }
